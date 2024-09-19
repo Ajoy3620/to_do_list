@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link
+      rel="stylesheet"
+      href="./TODOs List_files/bootstrap.min.css"
+      integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk"
+      crossorigin="anonymous"
+    />
+    <title>TODOs List</title>
+    <style>
+      /* Fade-in and fade-out animation */
+      @keyframes fadeInOut {
+        0% {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+
+        20% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+
+        80% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+
+        100% {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+      }
+
+      /* Applying the animation to the message div */
+      .fade-message {
+        animation: fadeInOut 3s ease-in-out forwards;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <a class="navbar-brand" href="#">TODOs List</a>
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-toggle="collapse"
+        data-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item active">
+            <a class="nav-link" href="#"
+              >Home <span class="sr-only">(current)</span></a
+            >
+          </li>
+          <li class="nav-item"><a class="nav-link" href="#">About</a></li>
+          <li class="nav-item"><a class="nav-link" href="#">Contact</a></li>
+        </ul>
+        <form class="form-inline my-2 my-lg-0">
+          <input
+            class="form-control mr-sm-2"
+            type="search"
+            placeholder="Search"
+            aria-label="Search"
+            id="search"
+          />
+          <button
+            class="btn btn-outline-success my-2 my-sm-0"
+            type="button"
+            id="searchBtn"
+          >
+            Search
+          </button>
+        </form>
+      </div>
+    </nav>
+    <div
+      id="message"
+      class="alert alert-success"
+      role="alert"
+      style="display: none"
+    >
+      Deleted Successfully
+    </div>
+
+    <div class="container my-4">
+      <h2 class="text-center">TODOs List</h2>
+
+      <div class="form-group">
+        <label for="title">Title</label>
+        <input
+          type="text"
+          class="form-control"
+          id="title"
+          aria-describedby="emailHelp"
+          required
+        />
+        <small id="emailHelp" class="form-text text-muted"
+          >Add an item to the list</small
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="description">Description</label>
+        <textarea
+          class="form-control"
+          id="description"
+          rows="3"
+          required
+        ></textarea>
+      </div>
+
+      <button type="submit" id="add" class="btn btn-primary" disabled>
+        Add to list
+      </button>
+
+      <div id="items" class="my-4">
+        <h2>Your Items</h2>
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">SNo</th>
+              <th scope="col">Item Title</th>
+              <th scope="col">Item Description</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">1</th>
+              <td>
+                <button class="btn btn-sm btn-primary">Update</button>
+                <button class="btn btn-sm btn-danger">Delete</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <script
+      src="./TODOs List_files/jquery-3.5.1.slim.min.js.download"
+      integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="./TODOs List_files/popper.min.js.download"
+      integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="./TODOs List_files/bootstrap.min.js.download"
+      integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
+      crossorigin="anonymous"
+    ></script>
+    <script>
+      const add = document.getElementById("add");
+      const itemsTableBody = document.querySelector("#items tbody");
+      const titleInput = document.getElementById("title");
+      const descriptionInput = document.getElementById("description");
+      const searchInput = document.getElementById("search");
+      let editingIndex = -1;
+
+      // Function to check whether both title and description have values
+      function validateInputs() {
+        if (
+          titleInput.value.trim() !== "" &&
+          descriptionInput.value.trim() !== ""
+        ) {
+          add.disabled = false; // Enable button if both fields are filled
+        } else {
+          add.disabled = true; // Disable button if one or both fields are empty
+        }
+      }
+
+      // Add event listeners to title and description inputs
+      titleInput.addEventListener("input", validateInputs);
+      descriptionInput.addEventListener("input", validateInputs);
+
+      function updateItemsDisplay(searchQuery = "") {
+        itemsTableBody.innerHTML = "";
+        const items = JSON.parse(localStorage.getItem("itemsJson")) || [];
+
+        items
+          .filter(
+            (item) =>
+              item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              item.description.toLowerCase().includes(searchQuery.toLowerCase())
+          )
+          .forEach((item, index) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                    <th scope="row">${index + 1}</th>
+                    <td>${item.title}</td>
+                    <td>${item.description}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="editItem(${index})">Update</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteItem(${index})">Delete</button>
+                    </td>
+                `;
+            itemsTableBody.appendChild(row);
+          });
+      }
+
+      function deleteItem(index) {
+        const items = JSON.parse(localStorage.getItem("itemsJson")) || [];
+        items.splice(index, 1);
+        localStorage.setItem("itemsJson", JSON.stringify(items));
+        updateItemsDisplay();
+
+        showMessage("Deleted Successfully");
+      }
+
+      function editItem(index) {
+        const items = JSON.parse(localStorage.getItem("itemsJson")) || [];
+        document.getElementById("title").value = items[index].title;
+        document.getElementById("description").value = items[index].description;
+        editingIndex = index;
+        add.innerText = "Update Item"; // Change button text
+        validateInputs(); // Check if the fields are filled and enable the button
+      }
+
+      function showMessage(message) {
+        const messageDiv = document.getElementById("message");
+        messageDiv.classList.remove("fade-message"); // Remove class if already applied
+        void messageDiv.offsetWidth; // Trigger a reflow to restart the animation
+        messageDiv.style.display = "block"; // Show the message
+        messageDiv.innerText = message; // Set the message text
+        messageDiv.classList.add("fade-message"); // Add the animation class
+      }
+
+      add.addEventListener("click", () => {
+        const tit = document.getElementById("title").value;
+        const desc = document.getElementById("description").value;
+        const items = JSON.parse(localStorage.getItem("itemsJson")) || [];
+
+        if (editingIndex >= 0) {
+          // Update existing item
+          items[editingIndex] = { title: tit, description: desc };
+          editingIndex = -1; // Reset for future additions
+          add.innerText = "Add to list"; // Reset button text
+          showMessage("Updated Successfully"); // Show "Updated Successfully" message
+        } else {
+          // Add new item
+          items.push({ title: tit, description: desc });
+          showMessage("Added Successfully"); // Show "Added Successfully" message
+        }
+
+        localStorage.setItem("itemsJson", JSON.stringify(items));
+        document.getElementById("title").value = "";
+        document.getElementById("description").value = "";
+        updateItemsDisplay();
+        validateInputs(); // Disable the button again after submission
+      });
+
+      // Search functionality
+      searchInput.addEventListener("input", () => {
+        const searchQuery = searchInput.value;
+        updateItemsDisplay(searchQuery);
+      });
+
+      document.addEventListener("DOMContentLoaded", function () {
+        updateItemsDisplay();
+        validateInputs(); // Optional: to disable the "Add" button if inputs are empty
+      });
+    </script>
+  </body>
+</html>
